@@ -2,8 +2,7 @@ import { defineConfig } from "astro/config";
 import tailwind from "@astrojs/tailwind";
 import react from "@astrojs/react";
 import sanity from "@sanity/astro";
-
-import netlify from "@astrojs/netlify";
+import vercel from "@astrojs/vercel/serverless";
 
 // https://astro.build/config
 export default defineConfig({
@@ -29,7 +28,7 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-  adapter: netlify(),
+  adapter: vercel(),
 
   image: {
     remotePatterns: [{ protocol: "http" }, { protocol: "https" }],
