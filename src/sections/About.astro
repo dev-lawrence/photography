@@ -1,0 +1,44 @@
+---
+import { PortableText } from 'astro-portabletext';
+import Title from '../components/Title';
+import { getAboutContent } from '@/lib/queries';
+
+const about = await getAboutContent();
+---
+
+<section id="about" class="pt-section">
+  <div class="container">
+    <div class="lg:grid lg:grid-cols-2 lg:gap-12">
+      <div class="mb-8 lg:mb-0">
+        <img
+          class="h-full rounded-lg object-cover"
+          src={about.image.asset.url}
+          alt={about.image.alt}
+        />
+      </div>
+
+      <div>
+        <Title title={about.title} subtitle={about.subtitle} />
+
+        <article class="prose prose-neutral dark:prose-invert">
+          <PortableText value={about.text} />
+        </article>
+
+        <div
+          class="mt-6 flex items-center gap-6 text-center sm:justify-center md:justify-between"
+        >
+          {
+            about.stats.map((stat) => (
+              <div>
+                <span class="text-300 font-500 leading-[1.1] md:text-500">
+                  {stat.statValue}
+                </span>
+                <p>{stat.statLabel}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

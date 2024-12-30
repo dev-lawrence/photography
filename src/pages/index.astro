@@ -1,0 +1,37 @@
+---
+import Hero from '@/sections/Hero.astro';
+import About from '@/sections/About.astro';
+import MainLayout from '@/layouts/MainLayout.astro';
+import Services from '@/sections/Services.astro';
+import Testimonial from '@/sections/Testimonial';
+import Pricing from '@/sections/Pricing.astro';
+import Contact from '@/sections/Contact.astro';
+import Project from '@/sections/Project.astro';
+import Blog from '@/sections/Blog.astro';
+---
+
+<MainLayout>
+  <!-- Hero section -->
+  <Hero />
+
+  <!-- About section -->
+  <About />
+
+  <!-- Service section -->
+  <Services />
+
+  <!-- Project section -->
+  <Project />
+
+  <!-- Testimonial section -->
+  <Testimonial client:load />
+
+  <!-- Pricing section -->
+  <Pricing />
+
+  <!-- Blog section -->
+  <Blog />
+
+  <!-- Contact section -->
+  <Contact />
+</MainLayout>

@@ -1,0 +1,15 @@
+---
+import type { ProjectProps } from '@/lib/types';
+import ProjectCard from './ProjectCard.astro';
+
+// Get the posts prop
+const { projects } = Astro.props as { projects: ProjectProps[] };
+---
+
+<div class="md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+  {
+    projects?.map((project, index) => (
+      <ProjectCard project={project} index={index} />
+    ))
+  }
+</div>

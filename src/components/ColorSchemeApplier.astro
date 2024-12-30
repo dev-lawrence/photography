@@ -1,0 +1,83 @@
+---
+import { getSiteSettings } from '@/lib/helper';
+import { colorPresets } from '../styles/color-presets';
+
+const siteSettings = await getSiteSettings();
+
+const colorScheme = siteSettings?.colorScheme || { preset: 'default' };
+
+function getColors(scheme: {
+  preset: string;
+  customColors?: Record<string, string>;
+}) {
+  if (scheme.preset === 'custom' && scheme.customColors) {
+    return {
+      light: scheme.customColors,
+      dark: scheme.customColors, // I might add separate dark mode custom colors in the future
+    };
+  }
+  const preset = scheme.preset as keyof typeof colorPresets;
+  const lightPreset = colorPresets[preset] || colorPresets.default;
+  const darkPresetKey = `${preset}-dark` as keyof typeof colorPresets;
+  const darkPreset = colorPresets[darkPresetKey] || colorPresets.dark;
+
+  return {
+    light: lightPreset,
+    dark: darkPreset,
+  };
+}
+
+const colors = getColors(colorScheme);
+
+function convertColors(colors: Record<string, string>): Record<string, string> {
+  const converted: Record<string, string> = {};
+  for (const [key, value] of Object.entries(colors)) {
+    if (typeof value === 'string' && value.includes(' ')) {
+      converted[key] = value; //  HSL values
+    } else {
+      converted[key] = value;
+    }
+  }
+  return converted;
+}
+
+const convertedLightColors = convertColors(colors.light);
+const convertedDarkColors = convertColors(colors.dark);
+---
+
+<script is:inline define:vars={{ convertedLightColors, convertedDarkColors }}>
+  function applyColors(colors) {
+    // remember to add isDark as a parameter
+    const root = document.documentElement;
+    Object.entries(colors).forEach(([key, value]) => {
+      if (value) {
+        root.style.setProperty(`--${key}`, value);
+      }
+    });
+  }
+
+  function updateColors() {
+    const isDark = document.documentElement.classList.contains('dark');
+    applyColors(isDark ? convertedDarkColors : convertedLightColors, isDark);
+  }
+
+  // Initial application of colors
+  updateColors();
+
+  // Watch for changes in the dark mode class
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (
+        mutation.type === 'attributes' &&
+        mutation.attributeName === 'class'
+      ) {
+        updateColors();
+      }
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+</script>

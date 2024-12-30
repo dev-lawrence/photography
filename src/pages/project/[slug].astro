@@ -1,0 +1,257 @@
+---
+import Contact from '@/sections/Contact.astro';
+import MainLayout from '@/layouts/MainLayout.astro';
+import type { ProjectProps } from '@/lib/types';
+import { sanityClient } from 'sanity:client';
+
+export const prerender = false;
+// Define the getStaticPaths function
+export async function getStaticPaths() {
+  // Fetch all post slugs from Sanity
+  const slugs = await sanityClient.fetch(
+    `*[_type == "projectSection"][0].projects[]{ "params": { "slug": slug.current } }`
+  );
+
+  return slugs;
+}
+
+const { slug } = Astro.params;
+
+if (slug === undefined) {
+  throw new Error('Slug is required');
+}
+
+// Fetch the blog post from Sanity by slug
+const query = `*[_type == "projectSection"][0].projects[slug.current == $slug][0]{
+  "slug":slug.current,
+  name,
+  category,
+  duration,
+  challenges,
+  location,
+  equipment,
+  details,
+  year,
+  imagesDelivered,
+  "image": image.asset->url,
+  "alt": image.alt,
+   "thumbnailImgs": thumbnailImgs[]{
+    "url": asset->url,
+    "dimensions": asset->metadata.dimensions
+  },
+  testimonial{
+    name,
+    description,
+    imageType,
+      image {
+        asset-> {
+          url
+        },
+        alt
+      },
+      url
+  }
+
+}`;
+const project: ProjectProps = await sanityClient.fetch(query, { slug });
+
+if (project === null) {
+  return Astro.redirect('/404');
+}
+---
+
+<MainLayout title={project.name}>
+  <div class="relative z-40">
+    <div class="absolute left-0 top-0 h-full w-full bg-black opacity-80"></div>
+    <div
+      class="container flex h-[70vh] flex-col items-start justify-center md:h-screen"
+    >
+      <div class="z-40 mr-auto max-w-[700px] pt-16 text-white">
+        <h2
+          class="mb-1 text-600 font-700 leading-[1.2] md:text-800 lg:text-1000"
+        >
+          {project.name}
+        </h2>
+        <p class="md:text-200">
+          A journey through {project.category} photography for {project.name}
+        </p>
+        <a
+          class="mt-4 inline-flex items-center gap-2 border-b-2 font-500 capitalize leading-3 text-white transition-colors duration-300 hover:text-primary"
+          href="/"
+        >
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>go back</span>
+        </a>
+      </div>
+
+      <img
+        class="absolute left-0 -z-10 h-full w-full object-cover"
+        src={project.image}
+        alt={project.alt}
+      />
+    </div>
+  </div>
+
+  <div class="container mt-16">
+    <div class="mx-auto max-w-[800px]">
+      <!-- Details -->
+      <p class="mb-16 text-center text-400 md:text-500 lg:text-[1.6rem]">
+        {project.details}
+      </p>
+
+      <!-- Detailed info  -->
+      <div
+        class="mb-16 mt-[2rem] grid grid-cols-2 items-center gap-4 text-center md:grid-cols-4"
+      >
+        <div>
+          <span
+            class="mb-1 inline-block text-200 font-600 capitalize md:text-300"
+            >client</span
+          >
+          <p class="capitalize md:text-200">{project.name}</p>
+        </div>
+
+        <div>
+          <span
+            class="mb-1 inline-block text-200 font-600 capitalize md:text-300"
+            >category</span
+          >
+          <p class="capitalize md:text-200">{project.category}</p>
+        </div>
+
+        <div>
+          <span class="inline-block text-200 font-600 capitalize md:text-300"
+            >year</span
+          >
+          <p class="capitalize md:text-200">{project.year}</p>
+        </div>
+
+        <div>
+          <span class="inline-block text-200 font-600 capitalize md:text-300"
+            >location</span
+          >
+          <p class="capitalize md:text-200">{project.location}</p>
+        </div>
+      </div>
+
+      <!-- project images -->
+      <div>
+        <p class="mb-4 text-center text-400 font-500 md:text-500">
+          Here’s a glimpse into the moments captured during the project
+        </p>
+        <div
+          class="pswp-gallery grid grid-cols-1 gap-4 md:grid-cols-2"
+          id="my-gallery"
+        >
+          {
+            project.thumbnailImgs?.map((image, index) => (
+              <a
+                href={image.url}
+                data-pswp-width={image.dimensions.width}
+                data-pswp-height={image.dimensions.height}
+                data-cropped="true"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <img
+                  class="w-full cursor-pointer rounded-2xl object-cover md:h-[400px]"
+                  src={image.url}
+                  alt={`Thumbnail ${index + 1}`}
+                />
+              </a>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- equipments used -->
+      <div class="mt-16 text-center">
+        <p class="text-200">
+          To bring this project to life, I used <span>{project.equipment}</span>
+          Each piece of equipment played a vital role in capturing the perfect shots.
+        </p>
+      </div>
+
+      <!-- challenges -->
+      {
+        project.challenges && (
+          <div class="mt-16 text-center">
+            <h3 class="text-400 font-500 md:text-500 lg:text-[1.6rem]">
+              Challenges
+            </h3>
+            <p class="text-200">{project.challenges}</p>
+          </div>
+        )
+      }
+
+      <!-- Testimonial -->
+      {
+        project.challenges && (
+          <div class="mt-16 text-center">
+            <h3 class="mb-1 text-400 font-500 md:text-500 lg:text-[1.6rem]">
+              Client Testimonial
+            </h3>
+
+            <figure class="mx-auto max-w-screen-md text-center">
+              <blockquote>
+                <p class="font-medium text-200 italic">
+                  "{project.testimonial.description}"
+                </p>
+              </blockquote>
+              <figcaption class="mt-4 flex items-center justify-center space-x-3 rtl:space-x-reverse">
+                {project.testimonial.imageType === 'upload' ? (
+                  <img
+                    class="h-11 w-11 rounded-full object-cover"
+                    src={project.testimonial.image?.asset.url}
+                    alt={project.testimonial.image?.alt}
+                  />
+                ) : (
+                  <img
+                    class="m-0 block h-11 w-11 rounded-full object-cover"
+                    src={project.testimonial.url}
+                    alt={project.testimonial.image?.alt}
+                  />
+                )}
+                <div class="flex items-center">
+                  <cite>{project.testimonial.name}</cite>
+                </div>
+              </figcaption>
+            </figure>
+          </div>
+        )
+      }
+
+      <!-- Final Deliverables -->
+      <div class="mt-16 text-center">
+        <p class="mb-8 text-400 md:text-500 lg:text-[1.6rem]">
+          The project concluded with {project.imagesDelivered} beautiful images that
+          perfectly capture the spirit of {project.name} during {
+            project.duration
+          }.
+        </p>
+        <p class="mt-4">
+          Interested in working with us to capture your next project? <a
+            href="#contact"
+            class="font-500 text-primary underline">Get in touch today!</a
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="text-grey-300 mt-20" />
+
+  <Contact />
+</MainLayout>
+
+<script>
+  import PhotoSwipeLightbox from 'photoswipe/lightbox';
+  import 'photoswipe/style.css';
+
+  const lightbox = new PhotoSwipeLightbox({
+    gallery: '#my-gallery',
+    children: 'a',
+    pswpModule: () => import('photoswipe'),
+  });
+  lightbox.init();
+</script>

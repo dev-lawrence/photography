@@ -1,0 +1,59 @@
+---
+import { Check } from 'lucide-react';
+import Title from '../components/Title';
+import { Button } from '../components/ui/button';
+import type { PricingPlanProps } from '@/lib/types';
+import { getPricingPlanContent } from '@/lib/queries';
+
+const pricingPlans = await getPricingPlanContent();
+
+const sortedPricingPlans: PricingPlanProps[] = pricingPlans.plans.sort(
+  (a, b) => {
+    const order = { silver: 1, platinum: 2, gold: 3 };
+    return order[a.name] - order[b.name];
+  }
+);
+---
+
+<section class="pt-section">
+  <div class="container">
+    <Title
+      title={pricingPlans.sectionTitle}
+      subtitle={pricingPlans.sectionSubtitle}
+      isCenter={true}
+    />
+
+    <div class="md:grid md:grid-cols-2 md:gap-4 lg:mt-16 lg:grid-cols-3">
+      {
+        sortedPricingPlans.map((plan) => (
+          <div
+            class={`rounded-lg bg-input px-4 pb-8 pt-12 md:flex md:flex-col [&:not(:last-child)]:mb-8 md:[&:not(:last-child)]:mb-0 ${plan.name == 'platinum' ? 'lg:-translate-y-12 lg:border-[1.5px] lg:border-primary' : ''}`}
+          >
+            <div class="mb-6">
+              <h3 class="text-300 font-500 capitalize text-primary">
+                {plan.name}
+              </h3>
+              <span class="text-800 font-600">${plan.price}</span>
+            </div>
+
+            <ul class="mb-12 h-full">
+              <p class="mb-6 font-500">Includes:</p>
+              {plan.features.map((feature) => (
+                <li class="flex gap-2 [&:not(:last-child)]:mb-[0.7rem]">
+                  <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <p>{feature}</p>
+                </li>
+              ))}
+            </ul>
+
+            {plan.link.map((link) => (
+              <a href={link.url}>
+                <Button className="w-full h-12 font-600">{link.title}</Button>
+              </a>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

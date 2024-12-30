@@ -1,0 +1,145 @@
+---
+import { sanityClient } from 'sanity:client';
+import { PortableText } from 'astro-portabletext';
+import MainLayout from '@/layouts/MainLayout.astro';
+import type { PostProps } from '@/lib/types';
+import { formatDate } from '@/lib/helper';
+import PostList from '@/components/PostList.astro';
+import Title from '@/components/Title';
+
+export const prerender = false;
+// Define the getStaticPaths function
+export async function getStaticPaths() {
+  // Fetch all post slugs from Sanity
+  const slugs = await sanityClient.fetch(
+    `*[_type == "post"]{ "params": { "slug": slug.current } }`
+  );
+
+  return slugs;
+}
+
+// Get the slug parameter from the URL
+const { slug } = Astro.params;
+
+if (slug === undefined) {
+  throw new Error('Slug is required');
+}
+
+// Fetch the blog post from Sanity by slug
+const query = `{
+  "post": *[_type == "post" && slug.current == $slug][0]{
+    title,
+    "slug": slug.current,
+     imageType,
+    image {
+      asset-> {
+        url
+      },
+      alt
+    },
+    url,
+    date,
+    author,
+    content
+  },
+  "relatedPosts": *[_type == "post" && slug.current != $slug] | order(date desc) [0...3] {
+    "slug":slug.current,
+    title,
+    alt,
+    author,
+      imageType,
+    image {
+      asset-> {
+        url
+      },
+      alt
+    },
+    url,
+    date,
+    tags,
+    content,
+   
+  }
+}`;
+const result = await sanityClient.fetch(query, { slug });
+const post: PostProps = result.post;
+const relatedPosts: PostProps[] = result.relatedPosts;
+
+if (post === null) {
+  return Astro.redirect('/404');
+}
+---
+
+<MainLayout title={post.slug}>
+  <div class="relative z-40">
+    <div class="absolute left-0 top-0 h-full w-full bg-black opacity-80"></div>
+    <div class="container flex h-[70vh] flex-col items-start justify-center">
+      <div class="z-40 mr-auto max-w-[700px] pt-16 text-white">
+        <h2 class="mb-1 text-600 font-700 leading-[1.2] md:text-800">
+          {post.title}
+        </h2>
+        <a
+          class="mt-2 inline-block border-b-2 font-500 capitalize leading-3 text-white transition-colors duration-300 hover:text-primary"
+          href="/"
+        >
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>go back</span>
+        </a>
+      </div>
+
+      {
+        post.imageType === 'upload' ? (
+          <img
+            class="absolute left-0 -z-10 h-full w-full object-cover"
+            src={post.image?.asset.url}
+            alt={post.image?.alt}
+          />
+        ) : (
+          <img
+            class="absolute left-0 -z-10 h-full w-full object-cover"
+            src={post.url}
+            alt={post.image?.alt}
+          />
+        )
+      }
+    </div>
+  </div>
+
+  <div class="container text-center">
+    <div class="mx-auto mb-[5rem] mt-20 max-w-[800px]">
+      {
+        post.imageType === 'upload' ? (
+          <img
+            class="mb-12 rounded-lg"
+            src={post.image?.asset.url}
+            alt={post.image?.alt}
+          />
+        ) : (
+          <img class="mb-12 rounded-lg" src={post.url} alt={post.image?.alt} />
+        )
+      }
+
+      <div class="mb-12">
+        <h1 class="mb-3 text-700 font-700 leading-[1.2] md:text-800">
+          {post.title}
+        </h1>
+
+        <div class="flex items-center justify-center gap-5">
+          <p class="text-200 text-primary/90">Written by {post.author}</p>
+          <span class="text-foreground/50">{formatDate(post.date)}</span>
+        </div>
+      </div>
+
+      <article class="prose prose-neutral dark:prose-invert lg:prose-xl">
+        <PortableText value={post.content} />
+      </article>
+    </div>
+  </div>
+
+  <!-- Related Posts -->
+  <div class="container mt-20">
+    <Title title="Related Posts" isCenter={true} />
+
+    <PostList posts={relatedPosts} />
+  </div>
+</MainLayout>

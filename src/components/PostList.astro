@@ -1,0 +1,12 @@
+---
+import type { PostProps } from '@/lib/types';
+import Post from './Post.astro';
+
+// Get the posts prop
+const { posts } = Astro.props as { posts: PostProps[] };
+
+---
+
+<div class="mt-[3.8rem] md:grid md:grid-cols-2 md:gap-5 lg:grid-cols-3">
+  {posts.map((post) => <Post post={post} />)}
+</div>

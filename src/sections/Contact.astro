@@ -1,0 +1,62 @@
+---
+import Form from '../components/Form';
+import Title from '../components/Title';
+import { getContactContent } from '@/lib/queries';
+const contact = await getContactContent();
+---
+
+<section id="contact" class="pt-section">
+  <div class="container">
+    <div class="container--inverse">
+      <Title title={contact.title} subtitle={contact.subtitle} />
+      <div class="md:grid md:grid-cols-2 md:gap-16">
+        <!-- form -->
+        <Form client:load />
+
+        <!-- other info -->
+        <div class="mb-16 mt-8">
+          <div
+            class="mb-2 flex flex-wrap items-center justify-start gap-2 lg:text-200"
+          >
+            <i class="fa-solid fa-phone"></i>
+            <a
+              class="text-foreground transition-colors duration-300 hover:text-primary"
+              href=`tel: ${contact.phone}`>{contact.phone}</a
+            >
+          </div>
+
+          <div
+            class="mb-4 flex flex-wrap items-center justify-start gap-2 lg:text-200"
+          >
+            <i class="fa-solid fa-envelope"></i>
+            <a
+              class="text-foreground transition-colors duration-300 hover:text-primary"
+              href=`mailto:${contact.email}`>{contact.email}</a
+            >
+          </div>
+
+          <div class="flex flex-wrap items-center justify-start gap-4">
+            {
+              contact.socialLinks.map((link) => {
+                const sanitizedPlatform = link.platform.replace(
+                  /[^\x20-\x7E]/g,
+                  ''
+                );
+                return (
+                  <a
+                    class="text-400 transition-transform duration-700 hover:translate-y-2 hover:text-primary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={link.url}
+                  >
+                    <i class={`fab fa-${sanitizedPlatform}`} />
+                  </a>
+                );
+              })
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

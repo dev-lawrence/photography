@@ -1,0 +1,43 @@
+---
+import { getServicesContent } from '@/lib/queries';
+import Title from '../components/Title';
+const servicesSection = await getServicesContent();
+---
+
+<section id="services" class="pt-section">
+  <div class="container">
+    <Title
+      title={servicesSection.sectionTitle}
+      subtitle={servicesSection.sectionSubtitle}
+      isCenter={true}
+    />
+    <div class="mt-[3.8rem] md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+      {
+        servicesSection.services.map((service) => (
+          <div class="rounded-lg border-[1.5px] border-muted-foreground p-4 pb-8 [&:not(:last-child)]:mb-16 lg:[&:not(:last-child)]:mb-0">
+            {service.imageType === 'upload' ? (
+              <img
+                class="translate-y-[-3rem] rounded-lg"
+                src={service.image?.asset.url}
+                alt={service.image?.alt}
+              />
+            ) : (
+              <img
+                class="translate-y-[-3rem] rounded-lg"
+                src={service.url}
+                alt={service.image?.alt}
+              />
+            )}
+
+            <div class="service-info">
+              <h3 class="mb-4 text-300 font-600 text-primary md:text-400">
+                {service.title}
+              </h3>
+              <p>{service.content}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

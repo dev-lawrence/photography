@@ -1,0 +1,20 @@
+---
+import PostList from '../components/PostList.astro';
+
+export const prerender = false;
+import Title from '../components/Title';
+import { getPostContent } from '@/lib/queries';
+const postsSection = await getPostContent();
+---
+
+<section id="blog" class="pt-section">
+  <div class="container">
+    <Title
+      title={postsSection.sectionTitle}
+      subtitle={postsSection.sectionSubtitle}
+      isCenter={true}
+    />
+
+    <PostList posts={postsSection.posts} />
+  </div>
+</section>

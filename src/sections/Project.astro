@@ -1,0 +1,105 @@
+---
+import Title from '../components/Title';
+import ProjectList from '../components/ProjectList.astro';
+import { getProjectContent } from '@/lib/queries';
+const projectsSection = await getProjectContent();
+
+let selected = 'all';
+
+const categories = [
+  'all',
+  ...(projectsSection?.projects.map((project) => project.category) ?? []),
+].filter(
+  (category, index, self) => self.indexOf(category) === index
+) as string[];
+
+const filteredProjects =
+  selected === 'all'
+    ? projectsSection.projects
+    : projectsSection.projects.filter(
+        (project) => project.category === selected
+      );
+---
+
+<section id="portfolio" class="pt-section">
+  <div class="container">
+    <Title
+      title={projectsSection.sectionTitle}
+      subtitle={projectsSection.sectionSubtitle}
+      isCenter={true}
+    />
+
+    <!-- Filter Tabs -->
+    <div class="mb-8 flex flex-wrap items-center justify-center gap-2">
+      {
+        categories.map((category) => (
+          <button
+            class={`font-medium filter-btn relative rounded-full border border-foreground px-5 py-2 text-100 transition-colors duration-300 ${
+              category === selected
+                ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-white'
+                : 'bg-transparent text-foreground dark:text-white'
+            }`}
+            data-category={category}
+          >
+            <span class="capitalize">{category}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <ProjectList projects={filteredProjects} />
+  </div>
+</section>
+
+<script>
+  const filterButtons = document.querySelectorAll(
+    '.filter-btn'
+  ) as NodeListOf<HTMLElement>;
+  const projectItems = document.querySelectorAll(
+    '.project'
+  ) as NodeListOf<HTMLElement>;
+
+  filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const category = button.getAttribute('data-category');
+
+      // Update active button
+      filterButtons.forEach((btn) => {
+        btn.classList.remove(
+          'bg-primary',
+          'text-white',
+          'dark:bg-primary',
+          'dark:text-white'
+        );
+        btn.classList.add(
+          'bg-transparent',
+          'text-foreground',
+          'dark:text-white'
+        );
+      });
+      button.classList.remove(
+        'bg-transparent',
+        'text-foreground',
+        'dark:text-white'
+      );
+      button.classList.add(
+        'bg-primary',
+        'text-white',
+        'dark:bg-primary',
+        'dark:text-white'
+      );
+
+      // Filter projects
+      projectItems.forEach((item) => {
+        if (
+          category === 'all' ||
+          item.getAttribute('data-category') === category
+        ) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
